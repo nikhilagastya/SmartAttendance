@@ -35,25 +35,25 @@ def findEncodings(images):
 nameList = []
 name_storer={}
 flag=1
-def markAttendance(name):
-    with open('Attendance.csv', 'r+') as f:
-        myDataList = f.readlines()
-        now =datetime.now()
-        # print(name)
-        for line in myDataList:
-            # print(nameList)
-            entry = line.split(',')
-            if name not in nameList:
-                name_storer[name]=[0,0]
-                # now = datetime.now()
-                name_storer[name][0]=time()
-                # dtString = now.strftime('%H:%M:%S')
-                # f.writelines(f'\n{name},{dtString}')
-                nameList.append(name)
-            else:
-                # now=datetime.now()
-                if time() - name_storer[name][0]>10:
-                    name_storer[name][1]=time()
+# def markAttendance(name):
+#     with open('Attendance.csv', 'r+') as f:
+#         myDataList = f.readlines()
+#         now =datetime.now()
+#         # print(name)
+#         for line in myDataList:
+#             # print(nameList)
+#             entry = line.split(',')
+#             if name not in nameList:
+#                 name_storer[name]=[0,0]
+#                 # now = datetime.now()
+#                 name_storer[name][0]=time()
+#                 # dtString = now.strftime('%H:%M:%S')
+#                 # f.writelines(f'\n{name},{dtString}')
+#                 nameList.append(name)
+#             else:
+#                 # now=datetime.now()
+#                 if time() - name_storer[name][0]>10:
+#                     name_storer[name][1]=time()
            
 def insert_data():
             d=[]
@@ -93,6 +93,7 @@ cap = cv2.VideoCapture(0)
 # 'http://192.168.1.2:8080/video'
 while True:
     success, img = cap.read()
+    c_img=img 
 # img = captureScreen()
     # imgS = cv2.resize(img, (0, 0), None, 0.5, 0.5)
     imgS = cv2.resize(img,(800,600))
@@ -116,12 +117,12 @@ while True:
             # cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
             # cv2.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 255, 0), cv2.FILLED)
             cv2.putText(img, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
-            markAttendance(name)
+            # markAttendance(name)
            
                 
                 
 
-    cv2.imshow('Webcam', img)
+    cv2.imshow('Webcam', c_img)
     key = cv2.waitKey(1)
     if key ==ord('q'):
         break
