@@ -8,7 +8,7 @@ import pymongo
 from pymongo import MongoClient
 
 # from PIL import ImageGrab
-
+clg="KMIT"
 path = 'Training_images'
 images = []
 classNames = []
@@ -34,46 +34,70 @@ def findEncodings(images):
 
 nameList = []
 name_storer={}
+# {name : [star ,end]}
 flag=1
-# def markAttendance(name):
-#     with open('Attendance.csv', 'r+') as f:
-#         myDataList = f.readlines()
-#         now =datetime.now()
-#         # print(name)
-#         for line in myDataList:
-#             # print(nameList)
-#             entry = line.split(',')
-#             if name not in nameList:
-#                 name_storer[name]=[0,0]
-#                 # now = datetime.now()
-#                 name_storer[name][0]=time()
-#                 # dtString = now.strftime('%H:%M:%S')
-#                 # f.writelines(f'\n{name},{dtString}')
-#                 nameList.append(name)
-#             else:
-#                 # now=datetime.now()
-#                 if time() - name_storer[name][0]>10:
-#                     name_storer[name][1]=time()
+
+
+def markAttendance(name):
+    cluster = MongoClient("mongodb+srv://artendance:Qwerty123@cluster0.lvtxm2j.mongodb.net/Artendance?retryWrites=true&w=majority")
+    db = cluster["Artendance"]
+    collection = db["students"]
+
+    if name not in nameList:
+         name_storer[name]=[0,0]
+         # now = datetime.now()
+         name_storer[name][0]=time()
+         nameList.append(name)
+    
+    else:
+        # now=datetime.now()
+        if time() - name_storer[name][0]>10:
+            name_storer[name][1]=time()
+            entry_time = name_storer[name][0]
+            exit_time = name_storer[name][1]
+            
+            existing_document = collection.find_one({"user_name": name})
+            if existing_document:
+                # Update total time in the existing document
+                total_time = existing_document.get("total_time", 0)
+                total_time += (exit_time - entry_time)
+                collection.update_one({"user_name": name}, {"$set": {"total_time": total_time}})
+            else:
+                # Insert a new document for the user
+                collection.insert_one({
+                    "user_name": name,
+                    "college":clg,
+                    "total_time": (exit_time - entry_time),
+                    "Date":datetime.now(),
+                    "class":"Elite"
+                })
+                
+
+            # Reset the entry and exit times
+            name_storer[name] = [0, 0]
+
+
+                  
            
-def insert_data():
-            d=[]
-            dic={}
-            dd=datetime.now().date()
-            for i,j in name_storer.items():
-                if(j[1]-j[0]>=10):
-                  d.append(i)
-            dic["user_name"]=d
-            dic["time"]=str(dd)
-        #    cluster = MongoClient("mongodb+srv://artendance:qwerty123@cluster0.wzf1uqp.mongodb.net/Artendance?retryWrites=true&w=majority")
-            cluster = MongoClient("mongodb+srv://artendance:Qwerty123@cluster0.lvtxm2j.mongodb.net/Artendance?retryWrites=true&w=majority")
-            db = cluster["Artendance"]
-            collection = db["students"]
-#           post1 = {"_id":0, "user_name":"sa"}
-# post2 = {"_id":"100", "user_name":"Ravi"}
-        #    if(collection.find_one(name_storer)):
-        #         collection.update_one(collection.find_one(name_storer),{"$set":name_storer})
-        #    else:
-            collection.insert_one(dic)
+# def insert_data():
+#             d=[]
+#             dic={}
+#             dd=datetime.now().date()
+#             for i,j in name_storer.items():
+#                 if(j[1]-j[0]>=10):
+#                   d.append(i)
+#             dic["user_name"]=d
+#             dic["time"]=str(dd)
+#         #    cluster = MongoClient("mongodb+srv://artendance:qwerty123@cluster0.wzf1uqp.mongodb.net/Artendance?retryWrites=true&w=majority")
+#             cluster = MongoClient("mongodb+srv://artendance:Qwerty123@cluster0.lvtxm2j.mongodb.net/Artendance?retryWrites=true&w=majority")
+#             db = cluster["Artendance"]
+#             collection = db["students"]
+# #           post1 = {"_id":0, "user_name":"sa"}
+# # post2 = {"_id":"100", "user_name":"Ravi"}
+#         #    if(collection.find_one(name_storer)):
+#         #         collection.update_one(collection.find_one(name_storer),{"$set":name_storer})
+#         #    else:
+#             collection.insert_one(dic)
        
 
 
@@ -93,7 +117,7 @@ cap = cv2.VideoCapture(0)
 # 'http://192.168.1.2:8080/video'
 while True:
     success, img = cap.read()
-    c_img=img 
+    c_img=img.copy()
 # img = captureScreen()
     # imgS = cv2.resize(img, (0, 0), None, 0.5, 0.5)
     imgS = cv2.resize(img,(800,600))
@@ -117,17 +141,16 @@ while True:
             # cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
             # cv2.rectangle(img, (x1, y2 - 35), (x2, y2), (0, 255, 0), cv2.FILLED)
             cv2.putText(img, name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
-            # markAttendance(name)
+            markAttendance(name)
            
                 
                 
 
-    cv2.imshow('Webcam', c_img)
+    cv2.imshow('Webcam', img)
     key = cv2.waitKey(1)
     if key ==ord('q'):
         break
 cv2.destroyAllWindows()
 cap.release() 
-print(name_storer)
 print()
-insert_data()
+# insert_data()
