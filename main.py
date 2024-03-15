@@ -3,6 +3,7 @@ import numpy as np
 import face_recognition
 import os
 from datetime import datetime
+from datetime import date
 from time import time
 import pymongo
 from pymongo import MongoClient
@@ -56,7 +57,7 @@ def markAttendance(name):
             entry_time = name_storer[name][0]
             exit_time = name_storer[name][1]
             
-            existing_document = collection.find_one({"user_name": name})
+            existing_document = collection.find_one({"user_name": name ,"Date":str(date.today())})
             if existing_document:
                 # Update total time in the existing document
                 total_time = existing_document.get("total_time", 0)
@@ -68,7 +69,7 @@ def markAttendance(name):
                     "user_name": name,
                     "college":clg,
                     "total_time": (exit_time - entry_time),
-                    "Date":datetime.now(),
+                    "Date":str(date.today()),
                     "class":"Elite"
                 })
                 
